@@ -1,4 +1,4 @@
-local addonName, addon = ...
+local addonName = ...
 local PeaversSpellExporter = CreateFrame("Frame")
 
 -- Initialize the database
@@ -93,8 +93,8 @@ local function IsSpellCastable(spellID, ignoreKnownCheck)
     end
 
     -- Check if the spell is in the action bar API
-    if IsUsableSpell then
-        local canUse = select(1, IsUsableSpell(spellID))
+    if C_Spell and C_Spell.IsSpellUsable then
+        local canUse = select(1, C_Spell.IsSpellUsable(spellID))
         if canUse ~= nil then  -- If the spell is known to the action bar API
             return true
         end
@@ -137,13 +137,13 @@ local function ExtractSpellBookSpells()
     -- Now scan the spellbook for this character
     print("PeaversSpellExporter: Scanning spellbook...")
     local bookTypes = {"spell"}
-    if HasPetSpells and select(2, HasPetSpells()) then
+    if _G.HasPetSpells and select(2, _G.HasPetSpells()) then
         table.insert(bookTypes, "pet")
     end
     for _, bookType in ipairs(bookTypes) do
         local maxSlots = 1000 -- Use a large number to scan all possible slots
         for i = 1, maxSlots do
-            local success, slotType, slotID = SafeCall(GetSpellBookItemInfo, i, bookType)
+            local success, slotType, slotID = SafeCall(_G.GetSpellBookItemInfo, i, bookType)
             if not success or not slotType then
                 -- We've reached the end of valid spell slots
                 break
@@ -179,7 +179,7 @@ local function ExtractSpellBookSpells()
             if success and configInfo and configInfo.treeIDs then
                 for _, treeID in ipairs(configInfo.treeIDs) do
                     local success2, nodes = SafeCall(C_Traits.GetTreeNodes, treeID)
-                    if success2 and nodes then
+                    if success2 and type(nodes) == "table" then
                         for _, nodeID in ipairs(nodes) do
                             local success3, nodeInfo = SafeCall(C_Traits.GetNodeInfo, configID, nodeID)
                             if success3 and nodeInfo and nodeInfo.entryIDs then
