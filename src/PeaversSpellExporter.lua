@@ -1,4 +1,4 @@
-local addonName, addon = ...
+local addonName = ...
 local PeaversSpellExporter = CreateFrame("Frame")
 
 -- Initialize the database
@@ -93,8 +93,8 @@ local function IsSpellCastable(spellID, ignoreKnownCheck)
     end
 
     -- Check if the spell is in the action bar API
-    if IsUsableSpell then
-        local canUse = select(1, IsUsableSpell(spellID))
+    if _G.IsUsableSpell then
+        local canUse = select(1, _G.IsUsableSpell(spellID))
         if canUse ~= nil then  -- If the spell is known to the action bar API
             return true
         end
@@ -137,13 +137,13 @@ local function ExtractSpellBookSpells()
     -- Now scan the spellbook for this character
     print("PeaversSpellExporter: Scanning spellbook...")
     local bookTypes = {"spell"}
-    if HasPetSpells and select(2, HasPetSpells()) then
+    if _G.HasPetSpells and select(2, _G.HasPetSpells()) then
         table.insert(bookTypes, "pet")
     end
     for _, bookType in ipairs(bookTypes) do
         local maxSlots = 1000 -- Use a large number to scan all possible slots
         for i = 1, maxSlots do
-            local success, slotType, slotID = SafeCall(GetSpellBookItemInfo, i, bookType)
+            local success, slotType, slotID = SafeCall(_G.GetSpellBookItemInfo, i, bookType)
             if not success or not slotType then
                 -- We've reached the end of valid spell slots
                 break
@@ -182,7 +182,7 @@ local function ExtractSpellBookSpells()
                     if success2 and nodes then
                         for _, nodeID in ipairs(nodes) do
                             local success3, nodeInfo = SafeCall(C_Traits.GetNodeInfo, configID, nodeID)
-                            if success3 and nodeInfo and nodeInfo.entryIDs then
+                            if success3 and type(nodeInfo) == "table" and nodeInfo.entryIDs then
                                 for _, entryID in ipairs(nodeInfo.entryIDs) do
                                     local success4, entryInfo = SafeCall(C_Traits.GetEntryInfo, configID, entryID)
                                     if success4 and entryInfo and entryInfo.definitionID then
